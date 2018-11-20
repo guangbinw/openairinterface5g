@@ -633,6 +633,16 @@ set_target_properties(tcp_bridge_oai PROPERTIES COMPILE_FLAGS "-fvisibility=hidd
 
 add_library(rfsimulator MODULE ${OPENAIR_TARGETS}/ARCH/rfsimulator/simulator.c)
 
+# channel simulator bridge library
+######################################################################
+
+set(HWLIB_CHANNEL_SIMULATOR_SOURCE
+  ${OPENAIR_TARGETS}/ARCH/tcp_bridge/channel_simulator.c
+  ${OPENAIR_DIR}/channel_simulator/utils.c
+  )
+add_library(channel_simulator MODULE ${HWLIB_CHANNEL_SIMULATOR_SOURCE} )
+set_target_properties(channel_simulator PROPERTIES COMPILE_FLAGS "-fvisibility=hidden")
+
 ##########################################################
 
 include_directories ("${OPENAIR_TARGETS}/ARCH/COMMON")
