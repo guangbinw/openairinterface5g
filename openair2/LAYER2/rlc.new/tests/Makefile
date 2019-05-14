@@ -9,7 +9,9 @@ tests:
 all: clean_run $(TEST).run
 
 %.run: test
-	./test | grep ^TEST > $(TEST).run
+	./test > $(TEST).run_pre
+	grep ^TEST $(TEST).run_pre > $(TEST).run
+	gunzip -c $(TEST).txt.gz > $(TEST).txt
 	diff -q $(TEST).txt $(TEST).run
 
 test: test.o $(LIB)
@@ -25,4 +27,4 @@ clean_run:
 	rm -f $(TEST).run test test.o
 
 clean:
-	rm -f *.o test *.run *.gcov *.gcda *.gcno
+	rm -f *.o test *.run *.run_pre *.gcov *.gcda *.gcno test*.txt

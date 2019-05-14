@@ -1055,6 +1055,7 @@ static int serialize_pdu(rlc_entity_am_t *entity, char *buffer, int bufsize,
   int                  outpos;
   int                  sdu_count;
   int                  header_size;
+  int                  sdu_start_byte;
 
   first_sdu_full = pdu->sdu_start_byte == 0;
 
@@ -1152,18 +1153,15 @@ static int serialize_pdu(rlc_entity_am_t *entity, char *buffer, int bufsize,
   /* generate data */
   out = buffer + header_size;
   sdu = pdu->start_sdu;
-  /* first SDU */
-  li = sdu->size - pdu->sdu_start_byte;
-  memcpy(out, sdu->data + pdu->sdu_start_byte, li);
-  outpos = li;
-  /* next SDUs */
-  sdu = sdu->next;
-  for (i = 1; i < sdu_count; i++, sdu = sdu->next) {
-    li = sdu->size;
+  sdu_start_byte = pdu->sdu_start_byte;
+  outpos = 0;
+  for (i = 0; i < sdu_count; i++, sdu = sdu->next) {
+    li = sdu->size - sdu_start_byte;
     if (outpos + li >= pdu->data_size)
       li = pdu->data_size - outpos;
-    memcpy(out+outpos, sdu->data, li);
+    memcpy(out+outpos, sdu->data + sdu_start_byte, li);
     outpos += li;
+    sdu_start_byte = 0;
   }
 
   if (p)

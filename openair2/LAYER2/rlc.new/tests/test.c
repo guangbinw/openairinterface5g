@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <inttypes.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 /*
  * ENB <rx_maxsize> <tx_maxsize> <t_reordering> <t_status_prohibit>
@@ -39,6 +41,10 @@
  *
  * UE_RECV_FAILS <fails>
  *     same as ENB_RECV_FAILS but for 'ue_recv_fails'
+ *
+ * MUST_FAIL
+ *     to be used as first command after the first TIME to indicate
+ *     that the test must fail (ie. exit with non zero, crash not allowed)
  */
 
 enum action {
@@ -46,6 +52,7 @@ enum action {
   TIME, ENB_SDU, UE_SDU,
   ENB_PDU_SIZE, UE_PDU_SIZE,
   ENB_RECV_FAILS, UE_RECV_FAILS,
+  MUST_FAIL
 };
 
 int test[] = {
@@ -103,20 +110,27 @@ void max_retx_reached_ue(void *max_retx_reached_data, rlc_entity_t *_entity)
          entity->t_current);
 }
 
-int main(void)
+int test_main(void)
 {
   rlc_entity_t *enb = NULL;
   rlc_entity_t *ue = NULL;
   int i;
   int k;
-  char sdu[16000];
-  char pdu[1000];
+  char *sdu;
+  char *pdu;
   int size;
   int pos;
   int enb_recv_fails = 0;
   int ue_recv_fails = 0;
   int enb_pdu_size = 1000;
   int ue_pdu_size = 1000;
+
+  sdu = malloc(16000);
+  pdu = malloc(1000);
+  if (sdu == NULL || pdu == NULL) {
+    printf("out of memory\n");
+    exit(1);
+  }
 
   for (i = 0; i < 16000; i++)
     sdu[i] = i & 255;
@@ -183,6 +197,11 @@ int main(void)
           break;
         case UE_RECV_FAILS:
           ue_recv_fails = test[pos+1];
+          pos += 2;
+          break;
+        case MUST_FAIL:
+          /* do nothing, only used by caller */
+          pos++;
           break;
         }
     }
@@ -208,6 +227,44 @@ int main(void)
         enb->recv_pdu(enb, pdu, size);
     }
   }
+
+  return 0;
+}
+
+int main(void)
+{
+  int must_fail = 0;
+  int son;
+  int status;
+
+  if (test[2] == MUST_FAIL)
+    must_fail = 1;
+
+  son = fork();
+  if (son == -1) {
+    perror("fork");
+    return 1;
+  }
+
+  if (son == 0)
+    return test_main();
+
+  if (wait(&status) == -1) {
+    perror("wait");
+    return 1;
+  }
+
+  /* child must quit properly */
+  if (!WIFEXITED(status))
+    return 1;
+
+  /* child must fail if expected to */
+  if (must_fail && WEXITSTATUS(status) == 0)
+    return 1;
+
+  /* child must not fail if not expected to */
+  if (!must_fail && WEXITSTATUS(status))
+    return 1;
 
   return 0;
 }
