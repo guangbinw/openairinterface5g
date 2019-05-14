@@ -125,14 +125,14 @@ int test_main(void)
   int enb_pdu_size = 1000;
   int ue_pdu_size = 1000;
 
-  sdu = malloc(16000);
+  sdu = malloc(16001);
   pdu = malloc(1000);
   if (sdu == NULL || pdu == NULL) {
     printf("out of memory\n");
     exit(1);
   }
 
-  for (i = 0; i < 16000; i++)
+  for (i = 0; i < 16001; i++)
     sdu[i] = i & 255;
 
   pos = 0;
