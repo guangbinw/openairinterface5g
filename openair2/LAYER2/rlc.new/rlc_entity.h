@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define SDU_MAX 16000   /* maximum PDCP SDU size is 8188, let's take more */
+
 typedef struct {
   int status_size;
   int tx_size;
@@ -59,5 +61,14 @@ rlc_entity_t *new_rlc_entity_am(
     int poll_pdu,
     int poll_byte,
     int max_retx_threshold);
+
+rlc_entity_t *new_rlc_entity_um(
+    int sn_field_length,
+    int rx_maxsize,
+    int tx_maxsize,
+    void (*deliver_sdu)(void *deliver_sdu_data, struct rlc_entity_t *entity,
+                      char *buf, int size),
+    void *deliver_sdu_data,
+    int t_reordering);
 
 #endif /* _RLC_ENTITY_H_ */

@@ -7,8 +7,6 @@
 #include "rlc_pdu.h"
 #include "rlc_sdu.h"
 
-#define SDU_MAX 16000   /* maximum PDCP SDU size is 8188, let's take more */
-
 /*
  * Here comes some documentation to understand the reassembly
  * logic in the code and the fields in the structure rlc_am_reassemble_t.

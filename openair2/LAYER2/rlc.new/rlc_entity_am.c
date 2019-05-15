@@ -1511,6 +1511,10 @@ void rlc_entity_am_set_time(rlc_entity_t *_entity, uint64_t now)
   /* t_status_prohibit is handled by generate_status */
 }
 
+/*************************************************************************/
+/* discard/re-establishment                                              */
+/*************************************************************************/
+
 void rlc_entity_am_discard_sdu(rlc_entity_t *_entity, int sdu_id)
 {
   /* implements 36.322 5.3 */

@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "rlc_entity_am.h"
+#include "rlc_entity_um.h"
 
 rlc_entity_t *new_rlc_entity_am(
     int rx_maxsize,
@@ -62,6 +63,56 @@ rlc_entity_t *new_rlc_entity_am(
   ret->poll_pdu           = poll_pdu;
   ret->poll_byte          = poll_byte;
   ret->max_retx_threshold = max_retx_threshold;
+
+  return (rlc_entity_t *)ret;
+}
+
+rlc_entity_t *new_rlc_entity_um(
+    int sn_field_length,
+    int rx_maxsize,
+    int tx_maxsize,
+    void (*deliver_sdu)(void *deliver_sdu_data, struct rlc_entity_t *entity,
+                      char *buf, int size),
+    void *deliver_sdu_data,
+    int t_reordering)
+{
+  rlc_entity_um_t *ret;
+
+  ret = calloc(1, sizeof(rlc_entity_um_t));
+  if (ret == NULL) {
+    printf("%s:%d:%s: out of memory\n", __FILE__, __LINE__, __FUNCTION__);
+    exit(1);
+  }
+
+  ret->common.recv_pdu      = rlc_entity_um_recv_pdu;
+  ret->common.buffer_status = rlc_entity_um_buffer_status;
+  ret->common.generate_pdu  = rlc_entity_um_generate_pdu;
+
+  ret->common.recv_sdu         = rlc_entity_um_recv_sdu;
+
+  ret->common.set_time = rlc_entity_um_set_time;
+
+  ret->common.discard_sdu = rlc_entity_um_discard_sdu;
+
+  ret->common.reestablishment = rlc_entity_um_reestablishment;
+
+  ret->common.deliver_sdu      = deliver_sdu;
+  ret->common.deliver_sdu_data = deliver_sdu_data;
+
+  ret->sn_field_length    = sn_field_length;
+  ret->rx_maxsize         = rx_maxsize;
+  ret->tx_maxsize         = tx_maxsize;
+  ret->t_reordering       = t_reordering;
+
+  if (sn_field_length == 5)
+    ret->sn_modulus = 32;
+  else if (sn_field_length == 10)
+    ret->sn_modulus = 1024;
+  else {
+    printf("%s:%d:%s: fatal\n", __FILE__, __LINE__, __FUNCTION__);
+    exit(1);
+  }
+  ret->window_size = ret->sn_modulus / 2;
 
   return (rlc_entity_t *)ret;
 }
