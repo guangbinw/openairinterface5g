@@ -44,20 +44,19 @@ int update_rrc_reconfig(mid_t mod_id, rnti_t rnti, Protocol__FlexRrcTriggering *
       }
     }
 
-    if (trigg->meas_info->n_cell_individual_offset != (flexran_get_rrc_num_adj_cells(mod_id) + 1)) {
-      LOG_E(FLEXRAN_AGENT, "Number of cell offsets are not equal to number of adjacent cells");
-      return -1;
-    }
-
     if (trigg->meas_info->n_cell_individual_offset > 0) {
       /* Set the serving cell offset */
-      if (flexran_set_rrc_ocp(mod_id, rnti, trigg->meas_info->cell_individual_offset[0]) < 0)
+      if (flexran_set_rrc_ocp(mod_id, rnti, trigg->meas_info->cell_individual_offset[0]) < 0) {
         LOG_E(FLEXRAN_AGENT, "Cannot set Serving cell offset");
+        return -1;
+      }
 
       /* Set the neighbouring cell offset */
       for (int i=0; i<(trigg->meas_info->n_cell_individual_offset-1); i++) {
-        if (flexran_set_rrc_ocn(mod_id, rnti, i, trigg->meas_info->cell_individual_offset[i+1]) < 0)
+        if (flexran_set_rrc_ocn(mod_id, rnti, i, trigg->meas_info->cell_individual_offset[i+1]) < 0) {
           LOG_E(FLEXRAN_AGENT, "Cannot set Neighbouring cell offset");
+          return -1;
+        }
       }
     }
 
