@@ -220,6 +220,7 @@ typedef struct {
   int poll_sn;
   int pdu_without_poll;
   int byte_without_poll;
+  int force_poll;
 
   /* set to the latest know time by the user of the module. Unit: ms */
   uint64_t t_current;

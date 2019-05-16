@@ -487,6 +487,7 @@ static void add_drb_am(int rnti, struct LTE_DRB_ToAddMod *s)
   struct LTE_RLC_Config *r = s->rlc_Config;
   struct LTE_LogicalChannelConfig *l = s->logicalChannelConfig;
   int drb_id = s->drb_Identity;
+  int channel_id = *s->logicalChannelIdentity;
   int logical_channel_group;
 
   int t_reordering;
@@ -499,6 +500,12 @@ static void add_drb_am(int rnti, struct LTE_DRB_ToAddMod *s)
   if (!(drb_id >= 1 && drb_id <= 5)) {
     printf("%s:%d:%s: fatal, bad srb id %d\n",
            __FILE__, __LINE__, __FUNCTION__, drb_id);
+    exit(1);
+  }
+
+  if (channel_id != drb_id + 2) {
+    printf("%s:%d:%s: todo, remove this limitation\n",
+           __FILE__, __LINE__, __FUNCTION__);
     exit(1);
   }
 
@@ -549,11 +556,84 @@ static void add_drb_am(int rnti, struct LTE_DRB_ToAddMod *s)
   rlc_manager_unlock(rlc_ue_manager);
 }
 
+static void add_drb_um(int rnti, struct LTE_DRB_ToAddMod *s)
+{
+  rlc_entity_t            *rlc_um;
+  rlc_ue_t                *ue;
+
+  struct LTE_RLC_Config *r = s->rlc_Config;
+  struct LTE_LogicalChannelConfig *l = s->logicalChannelConfig;
+  int drb_id = s->drb_Identity;
+  int channel_id = *s->logicalChannelIdentity;
+  int logical_channel_group;
+
+  int t_reordering;
+  int sn_field_length;
+
+  if (!(drb_id >= 1 && drb_id <= 5)) {
+    printf("%s:%d:%s: fatal, bad srb id %d\n",
+           __FILE__, __LINE__, __FUNCTION__, drb_id);
+    exit(1);
+  }
+
+  if (channel_id != drb_id + 2) {
+    printf("%s:%d:%s: todo, remove this limitation\n",
+           __FILE__, __LINE__, __FUNCTION__);
+    exit(1);
+  }
+
+  logical_channel_group = *l->ul_SpecificParameters->logicalChannelGroup;
+
+  /* TODO: accept other values? */
+  if (logical_channel_group != 1) {
+    printf("%s:%d:%s: fatal error\n", __FILE__, __LINE__, __FUNCTION__);
+    exit(1);
+  }
+
+  switch (r->present) {
+  case LTE_RLC_Config_PR_um_Bi_Directional: {
+    struct LTE_RLC_Config__um_Bi_Directional *um;
+    um = &r->choice.um_Bi_Directional;
+    t_reordering    = decode_t_reordering(um->dl_UM_RLC.t_Reordering);
+    if (um->dl_UM_RLC.sn_FieldLength != um->ul_UM_RLC.sn_FieldLength) {
+      printf("%s:%d:%s: fatal\n", __FILE__, __LINE__, __FUNCTION__);
+      exit(1);
+    }
+    sn_field_length = decode_sn_field_length(um->dl_UM_RLC.sn_FieldLength);
+    break;
+  }
+  default:
+    printf("%s:%d:%s: fatal error\n", __FILE__, __LINE__, __FUNCTION__);
+    exit(1);
+  }
+
+  rlc_manager_lock(rlc_ue_manager);
+  ue = rlc_manager_get_ue(rlc_ue_manager, rnti);
+  if (ue->drb[drb_id-1] != NULL) {
+    printf("%s:%d:%s: warning DRB %d already exist for ue %d, do nothing\n",
+           __FILE__, __LINE__, __FUNCTION__, drb_id, rnti);
+  } else {
+    rlc_um = new_rlc_entity_um(1000000,
+                               1000000,
+                               deliver_sdu, ue,
+                               t_reordering,
+                               sn_field_length);
+    rlc_ue_add_drb_rlc_entity(ue, drb_id, rlc_um);
+
+    printf("%s:%d:%s: added drb %d to ue %d\n",
+           __FILE__, __LINE__, __FUNCTION__, drb_id, rnti);
+  }
+  rlc_manager_unlock(rlc_ue_manager);
+}
+
 static void add_drb(int rnti, struct LTE_DRB_ToAddMod *s)
 {
   switch (s->rlc_Config->present) {
   case LTE_RLC_Config_PR_am:
     add_drb_am(rnti, s);
+    break;
+  case LTE_RLC_Config_PR_um_Bi_Directional:
+    add_drb_um(rnti, s);
     break;
   default:
     printf("%s:%d:%s: fatal: unhandled DRB type\n",

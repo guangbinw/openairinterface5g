@@ -92,3 +92,17 @@ int decode_max_retx_threshold(int v)
 
   return tab[v];
 }
+
+int decode_sn_field_length(int v)
+{
+  static int tab[2] = {
+    5, 10
+  };
+
+  if (v < 0 || v > 1) {
+    printf("%s:%d:%s: fatal\n", __FILE__, __LINE__, __FUNCTION__);
+    exit(1);
+  }
+
+  return tab[v];
+}

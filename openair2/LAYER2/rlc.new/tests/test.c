@@ -1,5 +1,6 @@
 #include "../rlc_entity.h"
 #include "../rlc_entity_am.h"
+#include "../rlc_entity_um.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,13 +9,19 @@
 #include <unistd.h>
 
 /*
- * ENB <rx_maxsize> <tx_maxsize> <t_reordering> <t_status_prohibit>
- *     <t_poll_retransmit> <poll_pdu> <poll_byte> <max_retx_threshold>
- *     create the eNB RLC AM entity with given parameters
+ * ENB_AM <rx_maxsize> <tx_maxsize> <t_reordering> <t_status_prohibit>
+ *       <t_poll_retransmit> <poll_pdu> <poll_byte> <max_retx_threshold>
+ *       create the eNB RLC AM entity with given parameters
  *
- * UE <rx_maxsize> <tx_maxsize> <t_reordering> <t_status_prohibit>
- *    <t_poll_retransmit> <poll_pdu> <poll_byte> <max_retx_threshold>
- *     create the UE RLC AM entity with given parameters
+ * UE_AM <rx_maxsize> <tx_maxsize> <t_reordering> <t_status_prohibit>
+ *      <t_poll_retransmit> <poll_pdu> <poll_byte> <max_retx_threshold>
+ *       create the UE RLC AM entity with given parameters
+ *
+ * ENB_UM <rx_maxsize> <tx_maxsize> <t_reordering> <sn_field_length>
+ *     create the eNB RLC UM entity with given parameters
+ *
+ * UE_UM <rx_maxsize> <tx_maxsize> <t_reordering> <sn_field_length>
+ *     create the UE RLC UM entity with given parameters
  *
  * TIME <time>
  *     following actions to be performed at time <time>
@@ -48,7 +55,8 @@
  */
 
 enum action {
-  ENB, UE,
+  ENB_AM, UE_AM,
+  ENB_UM, UE_UM,
   TIME, ENB_SDU, UE_SDU,
   ENB_PDU_SIZE, UE_PDU_SIZE,
   ENB_RECV_FAILS, UE_RECV_FAILS,
@@ -60,10 +68,20 @@ int test[] = {
 #include TEST
 };
 
-void deliver_sdu_enb(void *deliver_sdu_data, struct rlc_entity_t *_entity,
-                     char *buf, int size)
+void deliver_sdu_enb_am(void *deliver_sdu_data, struct rlc_entity_t *_entity,
+                        char *buf, int size)
 {
   rlc_entity_am_t *entity = (rlc_entity_am_t *)_entity;
+  printf("TEST: ENB: %"PRIu64": deliver SDU size %d [",
+         entity->t_current, size);
+  for (int i = 0; i < size; i++) printf(" %2.2x", (unsigned char)buf[i]);
+  printf("]\n");
+}
+
+void deliver_sdu_enb_um(void *deliver_sdu_data, struct rlc_entity_t *_entity,
+                        char *buf, int size)
+{
+  rlc_entity_um_t *entity = (rlc_entity_um_t *)_entity;
   printf("TEST: ENB: %"PRIu64": deliver SDU size %d [",
          entity->t_current, size);
   for (int i = 0; i < size; i++) printf(" %2.2x", (unsigned char)buf[i]);
@@ -85,10 +103,20 @@ void max_retx_reached_enb(void *max_retx_reached_data, rlc_entity_t *_entity)
          entity->t_current);
 }
 
-void deliver_sdu_ue(void *deliver_sdu_data, struct rlc_entity_t *_entity,
-                    char *buf, int size)
+void deliver_sdu_ue_am(void *deliver_sdu_data, struct rlc_entity_t *_entity,
+                       char *buf, int size)
 {
   rlc_entity_am_t *entity = (rlc_entity_am_t *)_entity;
+  printf("TEST: UE: %"PRIu64": deliver SDU size %d [",
+         entity->t_current, size);
+  for (int i = 0; i < size; i++) printf(" %2.2x", (unsigned char)buf[i]);
+  printf("]\n");
+}
+
+void deliver_sdu_ue_um(void *deliver_sdu_data, struct rlc_entity_t *_entity,
+                       char *buf, int size)
+{
+  rlc_entity_um_t *entity = (rlc_entity_um_t *)_entity;
   printf("TEST: UE: %"PRIu64": deliver SDU size %d [",
          entity->t_current, size);
   for (int i = 0; i < size; i++) printf(" %2.2x", (unsigned char)buf[i]);
@@ -147,23 +175,35 @@ int test_main(void)
       while (test[pos] != TIME)
         switch (test[pos]) {
         default: printf("fatal: unknown action\n"); exit(1);
-        case ENB:
+        case ENB_AM:
           enb = new_rlc_entity_am(test[pos+1], test[pos+2],
-                                  deliver_sdu_enb, NULL,
+                                  deliver_sdu_enb_am, NULL,
                                   successful_delivery_enb, NULL,
                                   max_retx_reached_enb, NULL,
                                   test[pos+3], test[pos+4], test[pos+5],
                                   test[pos+6], test[pos+7], test[pos+8]);
           pos += 9;
           break;
-        case UE:
+        case UE_AM:
           ue = new_rlc_entity_am(test[pos+1], test[pos+2],
-                                 deliver_sdu_ue, NULL,
+                                 deliver_sdu_ue_am, NULL,
                                  successful_delivery_ue, NULL,
                                  max_retx_reached_ue, NULL,
                                  test[pos+3], test[pos+4], test[pos+5],
                                  test[pos+6], test[pos+7], test[pos+8]);
           pos += 9;
+          break;
+        case ENB_UM:
+          enb = new_rlc_entity_um(test[pos+1], test[pos+2],
+                                  deliver_sdu_enb_um, NULL,
+                                  test[pos+3], test[pos+4]);
+          pos += 5;
+          break;
+        case UE_UM:
+          ue = new_rlc_entity_um(test[pos+1], test[pos+2],
+                                 deliver_sdu_ue_um, NULL,
+                                 test[pos+3], test[pos+4]);
+          pos += 5;
           break;
         case ENB_SDU:
           printf("TEST: ENB: %d: recv_sdu (id %d): size %d: [",

@@ -1,8 +1,8 @@
 To run tests, simply type: make
 
 Each test is made of:
-  testXX.h      definition of the test
-  testXX.txt    expected output of the test
+  testXX.h         definition of the test
+  testXX.txt.gz    compressed expected output of the test
 
 At runtime, we generate:
   testXX.run    actual output of the test
@@ -20,7 +20,7 @@ To define a new test, use the number YY that is XX of max test + 1.
 This is also the value 'test_count' + 1 with 'test_count' defined is
 run_tests.sh.
 Create the file testYY.h containing the test, then generate testYY.run
-by running 'make all TEST=testYY' and copy testYY.run to testYY.txt. Be
-sure that the output is correct.
+by running 'make all TEST=testYY' and copy testYY.run to testYY.txt. Then
+compress this file (gzip -9 testYY.txt). Be sure that the output is correct.
 
 The available instructions for a test are described at the top of test.c.

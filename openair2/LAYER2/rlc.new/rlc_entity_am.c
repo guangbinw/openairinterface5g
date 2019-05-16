@@ -1243,6 +1243,11 @@ static int generate_tx_pdu(rlc_entity_am_t *entity, char *buffer, int bufsize)
   else
     p = check_poll_after_pdu_assembly(entity);
 
+  if (entity->force_poll) {
+    p = 1;
+    entity->force_poll = 0;
+  }
+
   return serialize_pdu(entity, buffer, bufsize, pdu, p);
 }
 
@@ -1312,6 +1317,11 @@ static int generate_retx_pdu(rlc_entity_am_t *entity, char *buffer, int size)
                                           entity->wait_list, pdu);
 
   p = check_poll_after_pdu_assembly(entity);
+
+  if (entity->force_poll) {
+    p = 1;
+    entity->force_poll = 0;
+  }
 
   return serialize_pdu(entity, buffer, orig_size, pdu, p);
 }
@@ -1430,6 +1440,23 @@ static void check_t_poll_retransmit(rlc_entity_am_t *entity)
                                entity->t_poll_retransmit)
     return;
 
+  /* stop timer */
+  entity->t_poll_retransmit_start = 0;
+
+  /* 36.322 5.2.2.3 says:
+   *
+   *     - include a poll in a RLC data PDU as described in section 5.2.2.1
+   *
+   * That does not seem to be conditional. So we forcefully will send
+   * a poll as soon as we generate a PDU.
+   * Hopefully this interpretation is correct. In the worst case we generate
+   * more polling than necessary, but it's not a big deal. When
+   * 't_poll_retransmit' expires it means we didn't receive a status report,
+   * meaning a bad radio link, so things are quite bad at this point and
+   * asking again for a poll won't hurt much more.
+   */
+  entity->force_poll = 1;
+
   printf("%s:%d:%s: warning: t_poll_retransmit expired\n",
          __FILE__, __LINE__, __FUNCTION__);
 
@@ -1478,6 +1505,9 @@ static void check_t_reordering(rlc_entity_am_t *entity)
   if (entity->t_reordering_start == 0 ||
       entity->t_current <= entity->t_reordering_start + entity->t_reordering)
     return;
+
+  /* stop timer */
+  entity->t_reordering_start = 0;
 
   printf("%s:%d:%s: t_reordering expired\n", __FILE__, __LINE__, __FUNCTION__);
 
@@ -1585,6 +1615,7 @@ void rlc_entity_am_reestablishment(rlc_entity_t *_entity)
   entity->poll_sn = 0;
   entity->pdu_without_poll = 0;
   entity->byte_without_poll = 0;
+  entity->force_poll = 0;
 
   entity->t_current = 0;
 

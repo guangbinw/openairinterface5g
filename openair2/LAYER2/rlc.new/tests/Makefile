@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -g --coverage
 
-LIB=rlc_entity.o rlc_entity_am.o rlc_pdu.o rlc_sdu.o
+LIB=rlc_entity.o rlc_entity_am.o rlc_entity_um.o rlc_pdu.o rlc_sdu.o
 
 tests:
 	@./run_tests.sh

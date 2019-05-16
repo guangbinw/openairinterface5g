@@ -42,6 +42,7 @@ static int rlc_um_pdu_received(rlc_entity_um_t *entity, int sn)
   while (cur != NULL) {
     if (cur->sn == sn)
       return 1;
+    cur = cur->next;
   }
   return 0;
 }
@@ -162,7 +163,7 @@ static void rlc_um_reception_actions(rlc_entity_um_t *entity,
   if (!sn_in_recv_window(entity, pdu_segment->sn)) {
     entity->vr_uh = (pdu_segment->sn + 1) % entity->sn_modulus;
     rlc_um_reassemble(entity, outside_of_reordering_window);
-    if (!!sn_in_recv_window(entity, entity->vr_ur))
+    if (!sn_in_recv_window(entity, entity->vr_ur))
       entity->vr_ur = (entity->vr_uh - entity->window_size
                          + entity->sn_modulus) % entity->sn_modulus;
   }
@@ -547,6 +548,9 @@ static void check_t_reordering(rlc_entity_um_t *entity)
   if (entity->t_reordering_start == 0 ||
       entity->t_current <= entity->t_reordering_start + entity->t_reordering)
     return;
+
+  /* stop timer */
+  entity->t_reordering_start = 0;
 
   printf("%s:%d:%s: t_reordering expired\n", __FILE__, __LINE__, __FUNCTION__);
 

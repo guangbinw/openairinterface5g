@@ -7,5 +7,6 @@ int decode_t_poll_retransmit(int v);
 int decode_poll_pdu(int v);
 int decode_poll_byte(int v);
 int decode_max_retx_threshold(int v);
+int decode_sn_field_length(int v);
 
 #endif /* _ASN1_UTILS_H_ */
