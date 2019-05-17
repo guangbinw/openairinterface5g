@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <inttypes.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -271,14 +272,31 @@ int test_main(void)
   return 0;
 }
 
-int main(void)
+void usage(void)
+{
+  printf("options:\n");
+  printf("    -no-fork\n");
+  printf("        don't fork (to ease debugging with gdb)\n");
+  exit(0);
+}
+
+int main(int n, char **v)
 {
   int must_fail = 0;
   int son;
   int status;
+  int i;
+  int no_fork = 0;
+
+  for (i = 1; i < n; i++) {
+    if (!strcmp(v[i], "-no-fork")) { no_fork = 1; continue; }
+    usage();
+  }
 
   if (test[2] == MUST_FAIL)
     must_fail = 1;
+
+  if (no_fork) return test_main();
 
   son = fork();
   if (son == -1) {

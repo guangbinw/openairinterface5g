@@ -71,12 +71,15 @@ static int rlc_am_segment_full(rlc_entity_am_t *entity, int sn)
 
   last_byte = -1;
   while (l != NULL) {
-    if (l->sn == sn) break;
+    if (l->sn == sn)
+      break;
     l = l->next;
   }
   while (l != NULL && l->sn == sn) {
-    if (l->so > last_byte + 1) return 0;
-    if (l->is_last) return 1;
+    if (l->so > last_byte + 1)
+      return 0;
+    if (l->is_last)
+      return 1;
     new_last_byte = l->so + l->size - l->data_offset - 1;
     if (new_last_byte > last_byte)
       last_byte = new_last_byte;
