@@ -1542,7 +1542,7 @@ void rlc_entity_am_set_time(rlc_entity_t *_entity, uint64_t now)
 }
 
 /*************************************************************************/
-/* discard/re-establishment                                              */
+/* discard/re-establishment/delete                                       */
 /*************************************************************************/
 
 void rlc_entity_am_discard_sdu(rlc_entity_t *_entity, int sdu_id)
@@ -1592,16 +1592,10 @@ static void free_pdu_segment_list(rlc_tx_pdu_segment_t *l)
   }
 }
 
-void rlc_entity_am_reestablishment(rlc_entity_t *_entity)
+static void clear_entity(rlc_entity_am_t *entity)
 {
-  rlc_entity_am_t *entity = (rlc_entity_am_t *)_entity;
   rlc_rx_pdu_segment_t *cur_rx;
   rlc_sdu_t            *cur_tx;
-
-  /* 36.322 5.4 says to deliver SDUs if possible.
-   * Let's not do that, it makes the code simpler.
-   * TODO: change this behavior if wanted/needed.
-   */
 
   entity->vr_r = 0;
   entity->vr_x = 0;
@@ -1650,4 +1644,23 @@ void rlc_entity_am_reestablishment(rlc_entity_t *_entity)
   entity->wait_list = NULL;
   entity->retransmit_list = NULL;
   entity->ack_list = NULL;
+}
+
+void rlc_entity_am_reestablishment(rlc_entity_t *_entity)
+{
+  rlc_entity_am_t *entity = (rlc_entity_am_t *)_entity;
+
+  /* 36.322 5.4 says to deliver SDUs if possible.
+   * Let's not do that, it makes the code simpler.
+   * TODO: change this behavior if wanted/needed.
+   */
+
+  clear_entity(entity);
+}
+
+void rlc_entity_am_delete(rlc_entity_t *_entity)
+{
+  rlc_entity_am_t *entity = (rlc_entity_am_t *)_entity;
+  clear_entity(entity);
+  free(entity);
 }

@@ -579,7 +579,7 @@ void rlc_entity_um_set_time(rlc_entity_t *_entity, uint64_t now)
 }
 
 /*************************************************************************/
-/* discard/re-establishment                                              */
+/* discard/re-establishment/delete                                       */
 /*************************************************************************/
 
 void rlc_entity_um_discard_sdu(rlc_entity_t *_entity, int sdu_id)
@@ -618,13 +618,10 @@ void rlc_entity_um_discard_sdu(rlc_entity_t *_entity, int sdu_id)
   rlc_free_sdu(cur);
 }
 
-void rlc_entity_um_reestablishment(rlc_entity_t *_entity)
+static void clear_entity(rlc_entity_um_t *entity)
 {
-  rlc_entity_um_t *entity = (rlc_entity_um_t *)_entity;
   rlc_rx_pdu_segment_t *cur_rx;
   rlc_sdu_t            *cur_tx;
-
-  rlc_um_reassemble(entity, less_than_vr_uh);
 
   entity->vr_ur = 0;
   entity->vr_ux = 0;
@@ -656,4 +653,20 @@ void rlc_entity_um_reestablishment(rlc_entity_t *_entity)
   entity->tx_list = NULL;
   entity->tx_end = NULL;
   entity->tx_size = 0;
+}
+
+void rlc_entity_um_reestablishment(rlc_entity_t *_entity)
+{
+  rlc_entity_um_t *entity = (rlc_entity_um_t *)_entity;
+
+  rlc_um_reassemble(entity, less_than_vr_uh);
+
+  clear_entity(entity);
+}
+
+void rlc_entity_um_delete(rlc_entity_t *_entity)
+{
+  rlc_entity_um_t *entity = (rlc_entity_um_t *)_entity;
+  clear_entity(entity);
+  free(entity);
 }

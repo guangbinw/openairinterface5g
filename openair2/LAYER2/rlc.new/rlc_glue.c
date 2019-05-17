@@ -707,6 +707,10 @@ void rrc_rlc_register_rrc (rrc_data_ind_cb_t rrc_data_indP, rrc_data_conf_cb_t r
 
 rlc_op_status_t rrc_rlc_remove_ue (const protocol_ctxt_t* const x)
 {
-  printf(RED "%s" RESET "\n", __FUNCTION__); return 0;
+  rlc_manager_lock(rlc_ue_manager);
+  rlc_manager_remove_ue(rlc_ue_manager, x->rnti);
+  rlc_manager_unlock(rlc_ue_manager);
+
+  return RLC_OP_STATUS_OK;
 }
 

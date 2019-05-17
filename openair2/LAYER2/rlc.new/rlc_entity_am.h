@@ -259,5 +259,6 @@ int rlc_entity_am_generate_pdu(rlc_entity_t *entity, char *buffer, int size);
 void rlc_entity_am_set_time(rlc_entity_t *entity, uint64_t now);
 void rlc_entity_am_discard_sdu(rlc_entity_t *entity, int sdu_id);
 void rlc_entity_am_reestablishment(rlc_entity_t *entity);
+void rlc_entity_am_delete(rlc_entity_t *entity);
 
 #endif /* _RLC_ENTITY_AM_H_ */

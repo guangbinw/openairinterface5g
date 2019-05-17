@@ -69,6 +69,50 @@ rlc_ue_t *rlc_manager_get_ue(rlc_ue_manager_t *_m, int rnti)
 }
 
 /* must be called with lock acquired */
+void rlc_manager_remove_ue(rlc_ue_manager_t *_m, int rnti)
+{
+  rlc_ue_manager_internal_t *m = _m;
+  rlc_ue_t *ue;
+  int i;
+
+  for (i = 0; i < m->ue_count; i++)
+    if (m->ue_list[i].rnti == rnti)
+      break;
+
+  if (i == m->ue_count) {
+    printf("%s:%d:%s: warning: ue %d not found\n",
+           __FILE__, __LINE__, __FUNCTION__,
+           rnti);
+    return;
+  }
+
+  ue = &m->ue_list[i];
+
+  for (i = 0; i < 2; i++)
+    if (ue->srb[i] != NULL)
+      ue->srb[i]->delete(ue->srb[i]);
+
+  for (i = 0; i < 5; i++)
+    if (ue->drb[i] != NULL)
+      ue->drb[i]->delete(ue->drb[i]);
+
+  m->ue_count--;
+  if (m->ue_count == 0) {
+    free(m->ue_list);
+    m->ue_list = NULL;
+    return;
+  }
+
+  memcpy(&m->ue_list[i], &m->ue_list[i+1],
+         (m->ue_count - i) * sizeof(rlc_ue_t));
+  m->ue_list = realloc(m->ue_list, m->ue_count * sizeof(rlc_ue_t));
+  if (m->ue_list == NULL) {
+    printf("%s:%d:%s: fatal\n", __FILE__, __LINE__, __FUNCTION__);
+    exit(1);
+  }
+}
+
+/* must be called with lock acquired */
 void rlc_ue_add_srb_rlc_entity(rlc_ue_t *ue, int srb_id, rlc_entity_t *entity)
 {
   if (srb_id < 1 || srb_id > 2) {
