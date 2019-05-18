@@ -1,5 +1,5 @@
 /*
- * basic test: UE field length 5 bits
+ * basic um test: UE field length 5 bits
  * at time 1, eNB receives an SDU of 10 bytes
  * at time 10, UE receives an SDU of 5 bytes
  */

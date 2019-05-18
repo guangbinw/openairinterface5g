@@ -1,5 +1,5 @@
 /*
- * basic test:
+ * basic am test:
  * at time 1, eNB receives an SDU of 10 bytes
  * at time 10, UE receives an SDU of 5 bytes
  */

@@ -1,5 +1,5 @@
 /*
- * basic test:
+ * basic am test:
  * at time 1, eNB receives an SDU of 16001 bytes
  */
 
