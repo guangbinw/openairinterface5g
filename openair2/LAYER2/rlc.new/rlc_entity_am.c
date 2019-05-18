@@ -172,7 +172,8 @@ static void rlc_am_reassemble(rlc_entity_am_t *entity)
        * It is if the data pointer is not at the end of the PDU segment
        * or if 'fi' & 1 == 0
        */
-      if (r->data_pos != r->start->size || (r->fi & 1) == 0) {
+      if (r->data_pos != r->start->size ||
+          (r->fi & 1) == 0) {
         /* SDU is full - deliver to higher layer */
         entity->common.deliver_sdu(entity->common.deliver_sdu_data,
                                    (rlc_entity_t *)entity,

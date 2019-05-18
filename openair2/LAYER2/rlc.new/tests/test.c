@@ -37,6 +37,12 @@
  * UE_SDU <id> <size>
  *     same as ENB_SDU but the SDU is sent to the UE
  *
+ * ENB_PDU <size> <'size' bytes>
+ *     send a custom PDU from eNB to UE (eNB does not see this PDU at all)
+ *
+ * UE_PDU <size> <'size' bytes>
+ *     send a custom PDU from UE to eNB (UE does not see this PDU at all)
+ *
  * ENB_PDU_SIZE <size>
  *     set 'enb_pdu_size'
  *
@@ -58,7 +64,7 @@
 enum action {
   ENB_AM, UE_AM,
   ENB_UM, UE_UM,
-  TIME, ENB_SDU, UE_SDU,
+  TIME, ENB_SDU, UE_SDU, ENB_PDU, UE_PDU,
   ENB_PDU_SIZE, UE_PDU_SIZE,
   ENB_RECV_FAILS, UE_RECV_FAILS,
   MUST_FAIL
@@ -223,6 +229,26 @@ int test_main(void)
           printf("]\n");
           ue->recv_sdu(ue, sdu, test[pos+2], test[pos+1]);
           pos += 3;
+          break;
+        case ENB_PDU:
+          for (k = 0; k < test[pos+1]; k++)
+            pdu[k] = test[pos+2+k];
+          printf("TEST: ENB: %d: custom PDU: size %d: [", i, test[pos+1]);
+          for (k = 0; k < test[pos+1]; k++) printf(" %2.2x", (unsigned char)pdu[k]);
+          printf("]\n");
+          if (!ue_recv_fails)
+            ue->recv_pdu(ue, pdu, test[pos+1]);
+          pos += 2 + test[pos+1];
+          break;
+        case UE_PDU:
+          for (k = 0; k < test[pos+1]; k++)
+            pdu[k] = test[pos+2+k];
+          printf("TEST: UE: %d: custom PDU: size %d: [", i, test[pos+1]);
+          for (k = 0; k < test[pos+1]; k++) printf(" %2.2x", (unsigned char)pdu[k]);
+          printf("]\n");
+          if (!enb_recv_fails)
+            enb->recv_pdu(ue, pdu, test[pos+1]);
+          pos += 2 + test[pos+1];
           break;
         case ENB_PDU_SIZE:
           enb_pdu_size = test[pos+1];
