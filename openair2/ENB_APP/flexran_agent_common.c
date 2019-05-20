@@ -804,6 +804,33 @@ int flexran_agent_rrc_reconfiguration(mid_t mod_id, const void *params, Protocol
   return 0;
 }
 
+int flexran_agent_rrc_trigger_handover(mid_t mod_id, /*const void *params,*/ Protocol__FlexranMessage **msg) {
+//  Protocol__FlexranMessage *input = (Protocol__FlexranMessage *)params;
+//  Protocol__FlexRrcTriggering *triggering = input->rrc_triggering;
+
+  // Set the proper values using FlexRAN API (protected with mutex ?)
+  if (!flexran_agent_get_rrc_xface(mod_id)) {
+    LOG_E(FLEXRAN_AGENT, "%s(): no RRC present, aborting\n", __func__);
+    return -1;
+  }
+
+  int num_ue = flexran_get_rrc_num_ues(mod_id);
+  if (num_ue == 0)
+    return 0;
+
+  rnti_t rntis[num_ue];
+  flexran_get_rrc_rnti_list(mod_id, rntis, num_ue);
+  for (int i = 0; i < num_ue; i++) {
+    const rnti_t rnti = rntis[i];
+    // Call the proper wrapper in FlexRAN API
+    if (flexran_call_rrc_trigger_handover(mod_id, rnti, 0) < 0) {
+      LOG_E(FLEXRAN_AGENT, "Error in handovering user %d\n", i);
+    }
+  }
+
+  *msg = NULL;
+  return 0;
+}
 
 int flexran_agent_destroy_rrc_measurement(Protocol__FlexranMessage *msg) {
   // TODO

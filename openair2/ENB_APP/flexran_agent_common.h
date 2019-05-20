@@ -134,6 +134,7 @@ int flexran_agent_destroy_control_delegation(Protocol__FlexranMessage *msg);
 
 /* Policy reconfiguration message constructor and destructor */
 int flexran_agent_reconfiguration(mid_t mod_id, const void *params, Protocol__FlexranMessage **msg);
+int flexran_agent_rrc_trigger_handover(mid_t mod_id, /*const void *params,*/ Protocol__FlexranMessage **msg);
 int flexran_agent_destroy_agent_reconfiguration(Protocol__FlexranMessage *msg);
 
 /* rrc triggering measurement message constructor and destructor */
