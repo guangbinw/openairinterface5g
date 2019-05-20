@@ -155,6 +155,8 @@ int test_main(void)
   char *pdu;
   int size;
   int pos;
+  int next_byte_enb = 0;
+  int next_byte_ue = 0;
   int enb_recv_fails = 0;
   int ue_recv_fails = 0;
   int enb_pdu_size = 1000;
@@ -213,6 +215,8 @@ int test_main(void)
           pos += 5;
           break;
         case ENB_SDU:
+          for (k = 0; k < test[pos+2]; k++, next_byte_enb++)
+            sdu[k] = next_byte_enb;
           printf("TEST: ENB: %d: recv_sdu (id %d): size %d: [",
                  i, test[pos+1], test[pos+2]);
           for (k = 0; k < test[pos+2]; k++)
@@ -222,6 +226,8 @@ int test_main(void)
           pos += 3;
           break;
         case UE_SDU:
+          for (k = 0; k < test[pos+2]; k++, next_byte_ue++)
+            sdu[k] = next_byte_ue;
           printf("TEST: UE: %d: recv_sdu (id %d): size %d: [",
                  i, test[pos+1], test[pos+2]);
           for (k = 0; k < test[pos+2]; k++)

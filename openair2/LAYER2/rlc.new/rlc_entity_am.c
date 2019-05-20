@@ -855,9 +855,9 @@ static tx_pdu_size_t tx_pdu_size(rlc_entity_am_t *entity, int maxsize)
   while (sdu != NULL) {
     /* include SDU only if it has not been fully included in PDUs already */
     if (sdu->next_byte != sdu->size) {
-      int new_header_size = header_size(sdu_count+1);
+      int new_header_size = header_size(sdu_count + 1);
       /* if we cannot put new header + at least 1 byte of data then over */
-      if (new_header_size + pdu_data_size >= maxsize)
+      if (new_header_size + pdu_data_size + 1 > maxsize)
         break;
       sdu_count++;
       /* only include the bytes of this SDU not included in PDUs already */
@@ -1269,14 +1269,19 @@ static void resegment(rlc_tx_pdu_segment_t *pdu, int size)
    * size bytes (including header)
    */
   sdu = pdu->start_sdu;
-  pdu_header_size = 0;
   pdu_data_size = 0;
   sdu_pos = pdu->sdu_start_byte;
   sdu_count = 0;
-  while (pdu_header_size + pdu_data_size != size) {
-    sdu_count++;
+  while (1) {
+    /* can we put a new header and at least one byte of data? */
     /* header has 2 more bytes for SO */
-    pdu_header_size = 2 + header_size(sdu_count);
+    pdu_header_size = 2 + header_size(sdu_count + 1);
+    if (pdu_header_size + pdu_data_size + 1 > size) {
+      /* no we can't, stop here */
+      break;
+    }
+    /* yes we can, go ahead */
+    sdu_count++;
     sdu_bytes_to_take = sdu->size - sdu_pos;
     if (pdu_header_size + pdu_data_size + sdu_bytes_to_take > size) {
       sdu_bytes_to_take = size - (pdu_header_size + pdu_data_size);
@@ -1357,7 +1362,7 @@ static int retx_pdu_size(rlc_entity_am_t *entity, int maxsize)
     return 0;
 
   /* a later segmentation of the head of retransmit list will generate a pdu
-   * of size 'maxsize'
+   * of maximum size 'maxsize' (can be less)
    */
   return maxsize;
 }
