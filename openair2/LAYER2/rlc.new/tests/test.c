@@ -108,6 +108,7 @@ void max_retx_reached_enb(void *max_retx_reached_data, rlc_entity_t *_entity)
   rlc_entity_am_t *entity = (rlc_entity_am_t *)_entity;
   printf("TEST: ENB: %"PRIu64": max RETX reached! radio link failure!\n",
          entity->t_current);
+  exit(1);
 }
 
 void deliver_sdu_ue_am(void *deliver_sdu_data, struct rlc_entity_t *_entity,
@@ -143,6 +144,7 @@ void max_retx_reached_ue(void *max_retx_reached_data, rlc_entity_t *_entity)
   rlc_entity_am_t *entity = (rlc_entity_am_t *)_entity;
   printf("TEST: UE: %"PRIu64", max RETX reached! radio link failure!\n",
          entity->t_current);
+  exit(1);
 }
 
 int test_main(void)
