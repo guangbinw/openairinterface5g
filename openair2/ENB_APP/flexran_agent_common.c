@@ -804,9 +804,11 @@ int flexran_agent_rrc_reconfiguration(mid_t mod_id, const void *params, Protocol
   return 0;
 }
 
-int flexran_agent_rrc_trigger_handover(mid_t mod_id, /*const void *params,*/ Protocol__FlexranMessage **msg) {
-//  Protocol__FlexranMessage *input = (Protocol__FlexranMessage *)params;
-//  Protocol__FlexRrcTriggering *triggering = input->rrc_triggering;
+int flexran_agent_rrc_trigger_handover(mid_t mod_id, const void *params, Protocol__FlexranMessage **msg) {
+  Protocol__FlexranMessage *input = (Protocol__FlexranMessage *)params;
+  Protocol__FlexHoCommand *ho_command = input->ho_command_msg;
+
+  int rnti_found = 0;
 
   // Set the proper values using FlexRAN API (protected with mutex ?)
   if (!flexran_agent_get_rrc_xface(mod_id)) {
@@ -818,21 +820,43 @@ int flexran_agent_rrc_trigger_handover(mid_t mod_id, /*const void *params,*/ Pro
   if (num_ue == 0)
     return 0;
 
+  if (!ho_command->has_rnti) {
+    LOG_E(FLEXRAN_AGENT, "%s(): no UE rnti is present, aborting\n", __func__);
+    return -1;
+  }
+
+  if (!ho_command->has_target_phy_cell_id) {
+    LOG_E(FLEXRAN_AGENT, "%s(): no target physical cell id is  present, aborting\n", __func__);
+    return -1;
+  }
+
   rnti_t rntis[num_ue];
   flexran_get_rrc_rnti_list(mod_id, rntis, num_ue);
   for (int i = 0; i < num_ue; i++) {
     const rnti_t rnti = rntis[i];
-    // Call the proper wrapper in FlexRAN API
-    if (flexran_call_rrc_trigger_handover(mod_id, rnti, 0) < 0) {
-      LOG_E(FLEXRAN_AGENT, "Error in handovering user %d\n", i);
+    if (ho_command->rnti == rnti) {
+      rnti_found = 1;
+      // Call the proper wrapper in FlexRAN API
+      if (flexran_call_rrc_trigger_handover(mod_id, ho_command->rnti, ho_command->target_phy_cell_id) < 0) {
+        LOG_E(FLEXRAN_AGENT, "Error in handovering user %d\n", i);
+      }
+      break;
     }
   }
+
+  if (!rnti_found)
+    return -1;
 
   *msg = NULL;
   return 0;
 }
 
-int flexran_agent_destroy_rrc_measurement(Protocol__FlexranMessage *msg) {
+int flexran_agent_destroy_rrc_reconfiguration(Protocol__FlexranMessage *msg) {
+  // TODO
+  return 0;
+}
+
+int flexran_agent_destroy_rrc_trigger_handover(Protocol__FlexranMessage *msg) {
   // TODO
   return 0;
 }
