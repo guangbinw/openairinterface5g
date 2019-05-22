@@ -255,7 +255,7 @@ int test_main(void)
           for (k = 0; k < test[pos+1]; k++) printf(" %2.2x", (unsigned char)pdu[k]);
           printf("]\n");
           if (!enb_recv_fails)
-            enb->recv_pdu(ue, pdu, test[pos+1]);
+            enb->recv_pdu(enb, pdu, test[pos+1]);
           pos += 2 + test[pos+1];
           break;
         case ENB_PDU_SIZE:

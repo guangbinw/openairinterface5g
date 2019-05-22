@@ -373,7 +373,7 @@ static void process_received_nack(rlc_entity_am_t *entity, int sn,
 
   /* check that VT(A) <= sn < VT(S) */
   if (!(sn_compare_tx(entity, entity->vt_a, sn) <= 0 &&
-        sn_compare_tx(entity, sn, entity->vt_s)))
+        sn_compare_tx(entity, sn, entity->vt_s) < 0))
     return;
 
   /* process wait list */
