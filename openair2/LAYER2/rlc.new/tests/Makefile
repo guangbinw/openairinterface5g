@@ -27,4 +27,4 @@ clean_run:
 	rm -f $(TEST).run test test.o
 
 clean:
-	rm -f *.o test *.run *.run_pre *.gcov *.gcda *.gcno test*.txt
+	rm -f *.o test *.run *.run_pre *.gcov *.gcda *.gcno test*.txt a.out

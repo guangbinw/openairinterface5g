@@ -23,5 +23,7 @@ int main(void)
 
   for (i = 0; i < e.byte; i++) printf(" %2.2x", (unsigned char)e.buffer[i]);
 
+  printf("\n");
+
   return 0;
 }

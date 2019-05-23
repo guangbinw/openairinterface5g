@@ -59,6 +59,12 @@
  * MUST_FAIL
  *     to be used as first command after the first TIME to indicate
  *     that the test must fail (ie. exit with non zero, crash not allowed)
+ *
+ * ENB_BUFFER_STATUS
+ *     call buffer_status for eNB and print result
+ *
+ * UE_BUFFER_STATUS
+ *     call buffer_status for UE and print result
  */
 
 enum action {
@@ -67,7 +73,8 @@ enum action {
   TIME, ENB_SDU, UE_SDU, ENB_PDU, UE_PDU,
   ENB_PDU_SIZE, UE_PDU_SIZE,
   ENB_RECV_FAILS, UE_RECV_FAILS,
-  MUST_FAIL
+  MUST_FAIL,
+  ENB_BUFFER_STATUS, UE_BUFFER_STATUS
 };
 
 int test[] = {
@@ -155,6 +162,9 @@ int test_main(void)
   int k;
   char *sdu;
   char *pdu;
+  rlc_entity_buffer_status_t buffer_status;
+  int enb_do_buffer_status = 0;
+  int ue_do_buffer_status = 0;
   int size;
   int pos;
   int next_byte_enb = 0;
@@ -165,7 +175,7 @@ int test_main(void)
   int ue_pdu_size = 1000;
 
   sdu = malloc(16001);
-  pdu = malloc(1000);
+  pdu = malloc(3000);
   if (sdu == NULL || pdu == NULL) {
     printf("out of memory\n");
     exit(1);
@@ -278,11 +288,29 @@ int test_main(void)
           /* do nothing, only used by caller */
           pos++;
           break;
+        case ENB_BUFFER_STATUS:
+          enb_do_buffer_status = 1;
+          pos++;
+          break;
+        case UE_BUFFER_STATUS:
+          ue_do_buffer_status = 1;
+          pos++;
+          break;
         }
     }
 
     enb->set_time(enb, i);
     ue->set_time(ue, i);
+
+    if (enb_do_buffer_status) {
+      enb_do_buffer_status = 0;
+      buffer_status = enb->buffer_status(enb, enb_pdu_size);
+      printf("TEST: ENB: %d: buffer_status: status_size %d tx_size %d retx_size %d\n",
+             i,
+             buffer_status.status_size,
+             buffer_status.tx_size,
+             buffer_status.retx_size);
+    }
 
     size = enb->generate_pdu(enb, pdu, enb_pdu_size);
     if (size) {
@@ -291,6 +319,16 @@ int test_main(void)
       printf("]\n");
       if (!ue_recv_fails)
         ue->recv_pdu(ue, pdu, size);
+    }
+
+    if (ue_do_buffer_status) {
+      ue_do_buffer_status = 0;
+      buffer_status = ue->buffer_status(ue, ue_pdu_size);
+      printf("TEST: UE: %d: buffer_status: status_size %d tx_size %d retx_size %d\n",
+             i,
+             buffer_status.status_size,
+             buffer_status.tx_size,
+             buffer_status.retx_size);
     }
 
     size = ue->generate_pdu(ue, pdu, ue_pdu_size);
@@ -302,6 +340,9 @@ int test_main(void)
         enb->recv_pdu(enb, pdu, size);
     }
   }
+
+  enb->delete(enb);
+  ue->delete(ue);
 
   return 0;
 }

@@ -1317,8 +1317,14 @@ static int generate_retx_pdu(rlc_entity_am_t *entity, char *buffer, int size)
   pdu = entity->retransmit_list;
   orig_size = pdu_size(entity, pdu);
 
-  if (orig_size > size)
+  if (orig_size > size) {
+    /* we can't resegment if size is less than 5
+     * (4 bytes for header, 1 byte for data)
+     */
+    if (size < 5)
+      return 0;
     resegment(pdu, size);
+  }
 
   /* remove from retransmit list and put in wait list */
   entity->retransmit_list = pdu->next;
@@ -1393,12 +1399,19 @@ rlc_entity_buffer_status_t rlc_entity_am_buffer_status(
 int rlc_entity_am_generate_pdu(rlc_entity_t *_entity, char *buffer, int size)
 {
   rlc_entity_am_t *entity = (rlc_entity_am_t *)_entity;
+  int ret;
 
-  if (status_to_report(entity))
-    return generate_status(entity, buffer, size);
+  if (status_to_report(entity)) {
+    ret = generate_status(entity, buffer, size);
+    if (ret != 0)
+      return ret;
+  }
 
-  if (entity->retransmit_list != NULL)
-    return generate_retx_pdu(entity, buffer, size);
+  if (entity->retransmit_list != NULL) {
+    ret = generate_retx_pdu(entity, buffer, size);
+    if (ret != 0)
+      return ret;
+  }
 
   return generate_tx_pdu(entity, buffer, size);
 }
