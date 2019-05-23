@@ -1,4 +1,10 @@
 /*
+ * rlc am test function process_received_nack
+ *             case 'check that VT(A) <= sn < VT(S)'
+ * eNB sends PDU, not received, resends segmented
+ * we generate a fake control PDU containing nack_sn == 10,
+ * to fail the 'check ...' and cover the return.
+ *
  *  code to generate fake control PDU:
  *  rlc_pdu_encoder_init(&e, out, 100);
  *  rlc_pdu_encoder_put_bits(&e, 0, 1);    // D/C
@@ -20,8 +26,5 @@ TIME, 20,
     ENB_PDU_SIZE, 14,
 TIME, 60,
     ENB_RECV_FAILS, 0,
-    UE_PDU, 4, 0x00, 0x0a, 0x05, 0x00,
-TIME, 70,
-    UE_RECV_FAILS, 0,
+    UE_PDU, 4, 0x00, 0x02, 0x05, 0x00,
 TIME, -1
-

@@ -10,4 +10,3 @@ TIME, 1,
     ENB_RECV_FAILS, 1,
     ENB_SDU, 0, 10,
 TIME, -1
-

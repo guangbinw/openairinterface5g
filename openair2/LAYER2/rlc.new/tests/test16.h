@@ -1,4 +1,15 @@
 /*
+ * rlc am test process_received_nack
+ * Same events as for test15 except the fake control PDU
+ * does not ACK anything (ack_sn = 0) so that PDU in the
+ * wait_list are not transfered into the ack_list and
+ * we cover the case:
+ *    } else {
+ *      prev = cur;
+ *      cur = cur->next;
+ *    }
+ * for the wait_list case.
+ *
  *  code to generate fake control PDU:
  *  rlc_pdu_encoder_init(&e, out, 100);
  *  rlc_pdu_encoder_put_bits(&e, 0, 1);    // D/C
@@ -35,4 +46,3 @@ TIME, 60,
 TIME, 70,
     UE_RECV_FAILS, 0,
 TIME, -1
-

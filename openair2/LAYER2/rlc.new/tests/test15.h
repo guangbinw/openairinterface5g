@@ -1,4 +1,10 @@
 /*
+ * rlc am test so_overlap
+ * eNB sends PDU, not received
+ * then PDU is segmented in 3 parts, part 1 & 3 not received,
+ * then we generate a fake control PDU from UE to eNB that
+ * contains NACK with so_start/so_end being inside part 2.
+ *
  * code to generate fake control PDU:
  *  rlc_pdu_encoder_init(&e, out, 100);
  *  rlc_pdu_encoder_put_bits(&e, 0, 1);    // D/C
@@ -34,4 +40,3 @@ TIME, 60,
 TIME, 70,
     UE_RECV_FAILS, 0,
 TIME, -1
-
