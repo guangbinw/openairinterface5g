@@ -4344,6 +4344,9 @@ rrc_eNB_process_MeasurementReport(
   if (!is_x2ap_enabled())
     return;
 
+  if (RC.rrc[ctxt_pP->module_id]->x2_ho_net_control)
+    return;
+
   LOG_D(RRC, "A3 event is triggered...\n");
 
   /* if the UE is not in handover mode, start handover procedure */
