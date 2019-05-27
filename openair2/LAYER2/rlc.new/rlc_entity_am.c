@@ -959,9 +959,10 @@ static int generate_status(rlc_entity_am_t *entity, char *buffer, int size)
   }
 
   /* go to highest full sn+1 for ACK, VR(MS) is the limit */
-  while (sn_compare_rx(entity, ack, entity->vr_ms) < 0 &&
-         rlc_am_segment_full(entity, ack)) {
-    ack = (ack + 1) % 1024;
+  while (sn_compare_rx(entity, sn, entity->vr_ms) < 0 &&
+         rlc_am_segment_full(entity, sn)) {
+    ack = (sn + 1) % 1024;
+    sn = (sn + 1) % 1024;
   }
 
   /* at this point, if last put was NACK then put 2 bits else put 1 bit */

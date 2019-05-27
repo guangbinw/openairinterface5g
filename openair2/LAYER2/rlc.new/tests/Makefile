@@ -8,23 +8,23 @@ tests:
 
 all: clean_run $(TEST).run
 
-%.run: test
-	./test > $(TEST).run_pre
+%.run: $(TEST).bin
+	./$(TEST).bin > $(TEST).run_pre
 	grep ^TEST $(TEST).run_pre > $(TEST).run
 	gunzip -c $(TEST).txt.gz > $(TEST).txt
 	diff -q $(TEST).txt $(TEST).run
 
-test: test.o $(LIB)
+$(TEST).bin: $(TEST).o $(LIB)
 	$(CC) $(CFLAGS) -o $@ $^
 
 %.o: ../%.c
 	$(CC) $(CFLAGS) -I.. -c -o $@ $<
 
-test.o: test.c
+$(TEST).o: test.c
 	$(CC) $(CFLAGS) -c -o $@ $< -DTEST='"$(TEST).h"'
 
 clean_run:
-	rm -f $(TEST).run test test.o
+	rm -f $(TEST).run $(TEST).bin $(TEST).o
 
 clean:
-	rm -f *.o test *.run *.run_pre *.gcov *.gcda *.gcno test*.txt a.out
+	rm -f *.o *.bin *.run *.run_pre *.gcov *.gcda *.gcno test*.txt a.out
