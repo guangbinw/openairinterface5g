@@ -12,6 +12,8 @@ typedef struct {
   /* decoder of current PDU */
   rlc_pdu_decoder_t    dec;
   int sn;
+
+  int sdu_head_missing;
 } rlc_um_reassemble_t;
 
 typedef struct {

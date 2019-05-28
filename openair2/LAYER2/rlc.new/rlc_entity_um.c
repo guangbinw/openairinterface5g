@@ -100,6 +100,15 @@ static void rlc_um_reassemble_pdu(rlc_entity_um_t *entity,
     r->sdu_pos = 0;
   }
 
+  /* if the head of the SDU is missing, still process the PDU
+   * but remember to discard the reassembled SDU later on (the
+   * head has not been received).
+   * The head is missing if sdu_pos == 0 and fi says the PDU does not
+   * start an SDU.
+   */
+  if (r->sdu_pos == 0 && (fi & 0x02))
+    r->sdu_head_missing = 1;
+
   r->sn = sn;
   data_pos = pdu->data_offset;
 
@@ -120,10 +129,17 @@ static void rlc_um_reassemble_pdu(rlc_entity_um_t *entity,
        * or if 'fi' & 1 == 0
        */
       if (data_pos != pdu->size || (fi & 1) == 0) {
-        /* SDU is full - deliver to higher layer */
-        entity->common.deliver_sdu(entity->common.deliver_sdu_data,
-                                   (rlc_entity_t *)entity,
-                                   r->sdu, r->sdu_pos);
+        /* time to discard the SDU if we didn't receive the head */
+        if (r->sdu_head_missing) {
+          printf("%s:%d:%s: warning: discard SDU, head not received\n",
+                 __FILE__, __LINE__, __FUNCTION__);
+          r->sdu_head_missing = 0;
+        } else {
+          /* SDU is full - deliver to higher layer */
+          entity->common.deliver_sdu(entity->common.deliver_sdu_data,
+                                     (rlc_entity_t *)entity,
+                                     r->sdu, r->sdu_pos);
+        }
         r->sdu_pos = 0;
       }
       /* done with PDU? */
