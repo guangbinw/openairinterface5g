@@ -9,6 +9,7 @@ tests:
 all: clean_run $(TEST).run
 
 %.run: $(TEST).bin
+	#valgrind ./$(TEST).bin > $(TEST).run_pre 2> $(TEST).valgrind
 	./$(TEST).bin > $(TEST).run_pre
 	grep ^TEST $(TEST).run_pre > $(TEST).run
 	gunzip -c $(TEST).txt.gz > $(TEST).txt

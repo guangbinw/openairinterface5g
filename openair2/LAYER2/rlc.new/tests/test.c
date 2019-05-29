@@ -359,6 +359,9 @@ int test_main(void)
   enb->delete(enb);
   ue->delete(ue);
 
+  free(sdu);
+  free(pdu);
+
   return 0;
 }
 
