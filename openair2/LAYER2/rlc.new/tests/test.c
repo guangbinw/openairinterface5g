@@ -65,6 +65,12 @@
  *
  * UE_BUFFER_STATUS
  *     call buffer_status for UE and print result
+ *
+ * ENB_DISCARD_SDU <sdu ID>
+ *     discards given SDU
+ *
+ * UE_DISCARD_SDU <sdu ID>
+ *     discards given SDU
  */
 
 enum action {
@@ -74,7 +80,8 @@ enum action {
   ENB_PDU_SIZE, UE_PDU_SIZE,
   ENB_RECV_FAILS, UE_RECV_FAILS,
   MUST_FAIL,
-  ENB_BUFFER_STATUS, UE_BUFFER_STATUS
+  ENB_BUFFER_STATUS, UE_BUFFER_STATUS,
+  ENB_DISCARD_SDU, UE_DISCARD_SDU
 };
 
 int test[] = {
@@ -295,6 +302,14 @@ int test_main(void)
         case UE_BUFFER_STATUS:
           ue_do_buffer_status = 1;
           pos++;
+          break;
+        case ENB_DISCARD_SDU:
+          enb->discard_sdu(enb, test[pos+1]);
+          pos += 2;
+          break;
+        case UE_DISCARD_SDU:
+          ue->discard_sdu(ue, test[pos+1]);
+          pos += 2;
           break;
         }
     }
