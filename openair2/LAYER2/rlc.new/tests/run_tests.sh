@@ -1,6 +1,6 @@
 #!/bin/sh
 
-test_count=43
+test_count=45
 
 for i in `seq $test_count`
 do

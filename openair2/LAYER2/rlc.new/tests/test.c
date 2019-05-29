@@ -71,6 +71,9 @@
  *
  * UE_DISCARD_SDU <sdu ID>
  *     discards given SDU
+ *
+ * RE_ESTABLISH
+ *     re-establish both eNB and UE
  */
 
 enum action {
@@ -81,7 +84,8 @@ enum action {
   ENB_RECV_FAILS, UE_RECV_FAILS,
   MUST_FAIL,
   ENB_BUFFER_STATUS, UE_BUFFER_STATUS,
-  ENB_DISCARD_SDU, UE_DISCARD_SDU
+  ENB_DISCARD_SDU, UE_DISCARD_SDU,
+  RE_ESTABLISH
 };
 
 int test[] = {
@@ -304,12 +308,20 @@ int test_main(void)
           pos++;
           break;
         case ENB_DISCARD_SDU:
+          printf("TEST: ENB: %d: discard SDU %d\n", i, test[pos+1]);
           enb->discard_sdu(enb, test[pos+1]);
           pos += 2;
           break;
         case UE_DISCARD_SDU:
+          printf("TEST: UE: %d: discard SDU %d\n", i, test[pos+1]);
           ue->discard_sdu(ue, test[pos+1]);
           pos += 2;
+          break;
+        case RE_ESTABLISH:
+          printf("TEST: %d: re-establish eNB and UE\n", i);
+          enb->reestablishment(enb);
+          ue->reestablishment(ue);
+          pos++;
           break;
         }
     }

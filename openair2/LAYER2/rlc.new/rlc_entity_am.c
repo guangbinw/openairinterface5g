@@ -233,7 +233,7 @@ static void rlc_am_reception_actions(rlc_entity_am_t *entity,
           /* the list was empty, we need to init decoder */
           entity->reassemble.sn = -1;
           if (!rlc_am_reassemble_next_segment(&entity->reassemble)) {
-            /* TODO: proper error recovery (or remove the test, it should not happen */
+            /* TODO: proper error recovery (or remove the test, it should not happen) */
             printf("%s:%d:%s: fatal\n", __FILE__, __LINE__, __FUNCTION__);
             exit(1);
           }
